@@ -7,6 +7,7 @@ import time
 
 from types import MethodType, FunctionType
 
+from metaflow.sidecar import Message, MessageTypes
 from metaflow.datastore.exceptions import DataException
 
 from .metaflow_config import MAX_ATTEMPTS
@@ -501,6 +502,27 @@ class MetaflowTask(object):
                     "retry_count": retry_count,
                 }
             }
+        )
+
+        # 6. Update event logger with additional context around run_id, step_name, task_id, retry_count, and
+        # project_info to event logger context
+        # We don't update the context for the monitor as the cardinality of this context is high
+        event_logger_context = {
+            "run_id": run_id,
+            "step_name": step_name,
+            "task_id": task_id,
+            "retry_count": retry_count,
+            "project_name": current.get("project_name"),
+            "branch_name": current.get("branch_name"),
+            "is_user_branch": current.get("is_user_branch"),
+            "is_production": current.get("is_production"),
+            "project_flow_name": current.get("project_flow_name"),
+        }
+        self.event_logger.send(
+            Message(
+                MessageTypes.MUST_SEND,
+                event_logger_context,
+            )
         )
         logger = self.event_logger
         start = time.time()

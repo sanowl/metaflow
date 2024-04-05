@@ -100,6 +100,9 @@ from .metaflow_profile import profile
 # current runtime singleton
 from .metaflow_current import current
 
+# system current runtime singleton
+from .metaflow_system_current import system_current
+
 # Flow spec
 from .flowspec import FlowSpec
 
