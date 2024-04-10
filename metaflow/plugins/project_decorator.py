@@ -109,13 +109,15 @@ class ProjectDecorator(FlowDecorator):
             fg="magenta",
             highlight="green",
         )
-        current._update_env({
-            "project_name": project_name,
-            "branch_name": branch_name,
-            "is_user_branch": is_user_branch,
-            "is_production": options["production"],
-            "project_flow_name": project_flow_name,
-        })
+        current._update_env(
+            {
+                "project_name": project_name,
+                "branch_name": branch_name,
+                "is_user_branch": is_user_branch,
+                "is_production": options["production"],
+                "project_flow_name": project_flow_name,
+            }
+        )
 
         metadata.add_sticky_tags(
             sys_tags=["project:%s" % project_name, "project_branch:%s" % branch_name]

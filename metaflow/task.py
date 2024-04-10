@@ -4,6 +4,7 @@ import math
 import sys
 import os
 import time
+import traceback
 
 from types import MethodType, FunctionType
 
@@ -23,6 +24,7 @@ from .unbounded_foreach import UBF_CONTROL
 from .util import all_equal, get_username, resolve_identity, unicode_type
 from .clone_util import clone_task_helper
 from .metaflow_current import current
+from .metaflow_system_current import system_current
 from metaflow.tracing import get_trace_id
 from metaflow.tuple_util import ForeachFrame
 
@@ -281,25 +283,23 @@ class MetaflowTask(object):
                 "task.clone_only needs a valid clone_origin_task value."
             )
         origin_run_id, _, origin_task_id = clone_origin_task.split("/")
-
-        msg = {
-            "task_id": task_id,
-            "msg": "Cloning task from {}/{}/{}/{} to {}/{}/{}/{}".format(
-                self.flow.name,
-                origin_run_id,
-                step_name,
-                origin_task_id,
-                self.flow.name,
-                run_id,
-                step_name,
-                task_id,
-            ),
-            "step_name": step_name,
-            "run_id": run_id,
-            "flow_name": self.flow.name,
-            "ts": round(time.time()),
-        }
-        self.event_logger.log(msg)
+        msg = "Cloning task from {}/{}/{}/{} to {}/{}/{}/{}".format(
+            self.flow.name,
+            origin_run_id,
+            step_name,
+            origin_task_id,
+            self.flow.name,
+            run_id,
+            step_name,
+            task_id,
+        )
+        system_current.logger.log(
+            {
+                "log_type": "INFO",
+                "log_value": msg,
+                "stream_type": "LOGS",
+            }
+        )
         # If we actually have to do the clone ourselves, proceed...
         clone_task_helper(
             self.flow.name,
@@ -517,6 +517,7 @@ class MetaflowTask(object):
             "is_user_branch": current.get("is_user_branch"),
             "is_production": current.get("is_production"),
             "project_flow_name": current.get("project_flow_name"),
+            "trace_id": trace_id or None,
         }
         self.event_logger.send(
             Message(
@@ -524,19 +525,11 @@ class MetaflowTask(object):
                 event_logger_context,
             )
         )
-        logger = self.event_logger
         start = time.time()
         self.metadata.start_task_heartbeat(self.flow.name, run_id, step_name, task_id)
         try:
-            msg = {
-                "task_id": task_id,
-                "msg": "task starting",
-                "step_name": step_name,
-                "run_id": run_id,
-                "flow_name": self.flow.name,
-                "ts": round(time.time()),
-            }
-            logger.log(msg)
+            with system_current.metrics_manager.count("metaflow.task.start"):
+                pass
 
             self.flow._current_step = step_name
             self.flow._success = False
@@ -642,15 +635,16 @@ class MetaflowTask(object):
             self.flow._success = True
 
         except Exception as ex:
-            tsk_msg = {
-                "task_id": task_id,
-                "exception_msg": str(ex),
-                "msg": "task failed with exception",
-                "step_name": step_name,
-                "run_id": run_id,
-                "flow_name": self.flow.name,
-            }
-            logger.log(tsk_msg)
+            with system_current.metrics_manager.count("metaflow.task.exception"):
+                pass
+            system_current.logger.log(
+                {
+                    "log_type": "ERROR",
+                    "log_value": str(ex),
+                    "traceback": traceback.format_exc(),
+                    "stream_type": "LOGS",
+                }
+            )
 
             exception_handled = False
             for deco in decorators:
@@ -676,18 +670,11 @@ class MetaflowTask(object):
             if self.ubf_context == UBF_CONTROL:
                 self._finalize_control_task()
 
+            # Emit metrics to logger/monitor sidecar implementations
             end = time.time() - start
-
-            msg = {
-                "task_id": task_id,
-                "msg": "task ending",
-                "step_name": step_name,
-                "run_id": run_id,
-                "flow_name": self.flow.name,
-                "ts": round(time.time()),
-                "runtime": round(end),
-            }
-            logger.log(msg)
+            with system_current.metrics_manager.count("metaflow.task.end"):
+                pass
+            system_current.metrics_manager.gauge("metaflow.task.duration", end)
 
             attempt_ok = str(bool(self.flow._task_ok))
             self.metadata.register_metadata(

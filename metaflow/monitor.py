@@ -67,18 +67,19 @@ class NullMonitor(object):
             payload = {"counter": counter.serialize()}
             msg = Message(MessageTypes.BEST_EFFORT, payload)
             return msg
-    def get_measure_payload(self, name):
+
+    def get_measure_metrics(self, name):
         if self._sidecar.is_active:
             timer = Timer(name + "_timer")
             counter = Counter(name + "_counter")
             timer.start()
             counter.increment()
-            payload = {"counter": counter.serialize(), "timer": timer.serialize()}
-            msg = Message(MessageTypes.BEST_EFFORT, payload)
-            return msg
+            return timer, counter
 
-    def get_gauge_payload(self, gauge):
+    def get_gauge_payload(self, name, gauge_value):
         if self._sidecar.is_active:
+            gauge = Gauge(name)
+            gauge.set_value(gauge_value)
             payload = {"gauge": gauge.serialize()}
             msg = Message(MessageTypes.BEST_EFFORT, payload)
             return msg

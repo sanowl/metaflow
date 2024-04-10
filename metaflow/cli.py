@@ -961,7 +961,9 @@ def start(
         decorators._attach_decorators(ctx.obj.flow, decospecs)
 
     # We create an instance of MetricsManager and add it to system_current
-    metrics_manager = MetricsManager(ctx.obj.flow, ctx.obj.monitor, ctx.obj.event_logger, ctx.obj.environment)
+    metrics_manager = MetricsManager(
+        ctx.obj.flow, ctx.obj.monitor, ctx.obj.event_logger, ctx.obj.environment
+    )
 
     # initialize current, system_current, and parameter context for deploy-time parameters
     current._set_env(flow=ctx.obj.flow, is_running=False)

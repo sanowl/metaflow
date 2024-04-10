@@ -1,5 +1,6 @@
 import sys
 from contextlib import contextmanager
+from metaflow.sidecar import Message, MessageTypes
 from .metaflow_environment import MetaflowEnvironment
 from .metaflow_config import DEFAULT_EVENT_LOGGER, DEFAULT_MONITOR, DEFAULT_ENVIRONMENT
 from .plugins import MONITOR_SIDECARS, LOGGING_SIDECARS, ENVIRONMENTS
@@ -15,7 +16,9 @@ class MetricsManager(object):
         self._flow_name = flow.name
         if environment is None:
             environment = [
-                e for e in ENVIRONMENTS + [MetaflowEnvironment] if e.TYPE == DEFAULT_ENVIRONMENT
+                e
+                for e in ENVIRONMENTS + [MetaflowEnvironment]
+                if e.TYPE == DEFAULT_ENVIRONMENT
             ][0](flow)
 
         if monitor is None:
@@ -80,9 +83,20 @@ class MetricsManager(object):
 
     @contextmanager
     def measure(self, metric_name, qualifer_name=None):
-        monitor_msg = self.monitor.get_measure_payload(metric_name)
-        counter_msg, timer_msg = self.logger.get_measure_payload(monitor_msg.payload, qualifer_name)
+        timer, counter = self.monitor.get_measure_metrics(metric_name)
         yield
+        timer.end()
+        monitor_payload = {"counter": counter.serialize(), "timer": timer.serialize()}
+        monitor_msg = Message(MessageTypes.BEST_EFFORT, monitor_payload)
+        counter_msg, timer_msg = self.logger.get_measure_payload(
+            monitor_msg.payload, qualifer_name
+        )
         self.monitor.send_metric(monitor_msg)
         self.logger.log_event(counter_msg)
         self.logger.log_event(timer_msg)
+
+    def gauge(self, metric_name, gauge_value, qualifer_name=None):
+        monitor_msg = self.monitor.get_gauge_payload(metric_name, gauge_value)
+        logger_msg = self.logger.get_gauge_payload(monitor_msg.payload, qualifer_name)
+        self.monitor.send_metric(monitor_msg)
+        self.logger.log_event(logger_msg)

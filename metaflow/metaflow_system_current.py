@@ -33,6 +33,7 @@ class SystemCurrent(object):
         # _metrics_manager is None when the system is not running a flow
         if self._metrics_manager is None:
             from metaflow.metaflow_metrics_manager import MetricsManager
+
             self._metrics_manager = MetricsManager()
             self._metrics_manager.start()
             return self._metrics_manager
