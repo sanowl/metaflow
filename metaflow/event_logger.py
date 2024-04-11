@@ -24,13 +24,13 @@ class NullEventLogger(object):
             msg = Message(MessageTypes.BEST_EFFORT, payload)
             self._sidecar.send(msg)
 
-    def get_count_payload(self, payload):
+    def get_count_payload(self, payload, qualifer_name=None):
         return None
 
-    def get_gauge_payload(self, payload):
+    def get_gauge_payload(self, payload, qualifer_name=None):
         return None
 
-    def get_measure_payload(self, payload):
+    def get_measure_payload(self, payload, qualifer_name=None):
         return None, None
 
     def log_event(self, msg):

@@ -76,7 +76,9 @@ class MetricsManager(object):
     @contextmanager
     def count(self, metric_name, qualifer_name=None):
         monitor_msg = self.monitor.get_count_payload(metric_name)
-        logger_msg = self.logger.get_count_payload(monitor_msg.payload, qualifer_name)
+        logger_msg = self.logger.get_count_payload(
+            monitor_msg.payload if monitor_msg else None, qualifer_name
+        )
         yield
         self.monitor.send_metric(monitor_msg)
         self.logger.log_event(logger_msg)
@@ -97,6 +99,8 @@ class MetricsManager(object):
 
     def gauge(self, metric_name, gauge_value, qualifer_name=None):
         monitor_msg = self.monitor.get_gauge_payload(metric_name, gauge_value)
-        logger_msg = self.logger.get_gauge_payload(monitor_msg.payload, qualifer_name)
+        logger_msg = self.logger.get_gauge_payload(
+            monitor_msg.payload if monitor_msg else None, qualifer_name
+        )
         self.monitor.send_metric(monitor_msg)
         self.logger.log_event(logger_msg)
