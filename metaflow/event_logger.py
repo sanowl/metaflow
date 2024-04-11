@@ -24,16 +24,14 @@ class NullEventLogger(object):
             msg = Message(MessageTypes.BEST_EFFORT, payload)
             self._sidecar.send(msg)
 
-    def get_counter_payload(self, payload):
-        if self._sidecar.is_active and payload:
-            msg = Message(MessageTypes.BEST_EFFORT, payload.get("counter"))
-            return msg
+    def get_count_payload(self, payload):
+        return None
+
+    def get_gauge_payload(self, payload):
+        return None
 
     def get_measure_payload(self, payload):
-        if self._sidecar.is_active and payload:
-            counter_msg = Message(MessageTypes.BEST_EFFORT, payload.get("counter"))
-            timer_msg = Message(MessageTypes.BEST_EFFORT, payload.get("timer"))
-            return counter_msg, timer_msg
+        return None, None
 
     def log_event(self, msg):
         if self._sidecar.is_active and msg:
