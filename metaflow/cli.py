@@ -14,8 +14,8 @@ from . import decorators
 from . import metaflow_version
 from . import namespace
 from .metaflow_current import current
-from .metaflow_system_current import system_current
-from .metaflow_metrics_manager import MetricsManager
+from .metaflow_system_monitor import _system_monitor
+from .metaflow_system_logger import _system_logger
 from .cli_args import cli_args
 from .tagging_util import validate_tags
 from .util import (
@@ -960,14 +960,12 @@ def start(
     if decospecs:
         decorators._attach_decorators(ctx.obj.flow, decospecs)
 
-    # We create an instance of MetricsManager and add it to system_current
-    metrics_manager = MetricsManager(
-        ctx.obj.flow, ctx.obj.monitor, ctx.obj.event_logger, ctx.obj.environment
-    )
+    # We create an instance of SystemMonitor and SystemLogger respectively
+    _system_monitor.set_monitor(ctx.obj.flow, ctx.obj.environment, ctx.obj.monitor)
+    _system_logger.set_logger(ctx.obj.flow, ctx.obj.environment, ctx.obj.event_logger)
 
-    # initialize current, system_current, and parameter context for deploy-time parameters
+    # initialize current and parameter context for deploy-time parameters
     current._set_env(flow=ctx.obj.flow, is_running=False)
-    system_current._set_env(metrics_manager=metrics_manager)
     parameters.set_parameter_context(
         ctx.obj.flow.name, ctx.obj.echo, ctx.obj.flow_datastore
     )

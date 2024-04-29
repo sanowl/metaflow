@@ -24,7 +24,8 @@ from .unbounded_foreach import UBF_CONTROL
 from .util import all_equal, get_username, resolve_identity, unicode_type
 from .clone_util import clone_task_helper
 from .metaflow_current import current
-from .metaflow_system_current import system_current
+from .metaflow_system_monitor import _system_monitor
+from .metaflow_system_logger import _system_logger
 from metaflow.tracing import get_trace_id
 from metaflow.tuple_util import ForeachFrame
 
@@ -293,13 +294,17 @@ class MetaflowTask(object):
             step_name,
             task_id,
         )
-        system_current.logger.log(
-            {
-                "log_type": "INFO",
-                "log_value": msg,
-                "stream_type": "LOGS",
-            }
-        )
+        with _system_monitor.count("metaflow.task.clone"):
+            _system_logger.log(
+                {
+                    "event_name": "metaflow.task.clone",
+                    "event_value": 1,
+                    "log_type": "INFO",
+                    "log_value": msg,
+                    "stream_type": "LOGS",
+                }
+            )
+            pass
         # If we actually have to do the clone ourselves, proceed...
         clone_task_helper(
             self.flow.name,
@@ -528,7 +533,13 @@ class MetaflowTask(object):
         start = time.time()
         self.metadata.start_task_heartbeat(self.flow.name, run_id, step_name, task_id)
         try:
-            with system_current.metrics_manager.count("metaflow.task.start"):
+            with _system_monitor.count("metaflow.task.start"):
+                _system_logger.log(
+                    {
+                        "event_name": "metaflow.task.start",
+                        "event_value": 1,
+                    }
+                )
                 pass
 
             self.flow._current_step = step_name
@@ -635,16 +646,19 @@ class MetaflowTask(object):
             self.flow._success = True
 
         except Exception as ex:
-            with system_current.metrics_manager.count("metaflow.task.exception"):
+            print("I am here in metaflow")
+            with _system_monitor.count("metaflow.task.exception"):
+                # Log both the metric and the exception message
+                _system_logger.log(
+                    {
+                        "event_name": "metaflow.task.exception",
+                        "event_value": 1,
+                        "log_type": "ERROR",
+                        "log_value": str(ex),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
                 pass
-            system_current.logger.log(
-                {
-                    "log_type": "ERROR",
-                    "log_value": str(ex),
-                    "traceback": traceback.format_exc(),
-                    "stream_type": "LOGS",
-                }
-            )
 
             exception_handled = False
             for deco in decorators:
@@ -671,10 +685,23 @@ class MetaflowTask(object):
                 self._finalize_control_task()
 
             # Emit metrics to logger/monitor sidecar implementations
-            end = time.time() - start
-            with system_current.metrics_manager.count("metaflow.task.end"):
+            duration = time.time() - start
+            with _system_monitor.count("metaflow.task.end"):
+                _system_logger.log(
+                    {
+                        "event_name": "metaflow.task.end",
+                        "event_value": 1,
+                    }
+                )
                 pass
-            system_current.metrics_manager.gauge("metaflow.task.duration", end)
+
+            _system_monitor.gauge("metaflow.task.duration", duration)
+            _system_logger.log(
+                {
+                    "event_name": "metaflow.task.duration",
+                    "event_value": duration,
+                }
+            )
 
             attempt_ok = str(bool(self.flow._task_ok))
             self.metadata.register_metadata(

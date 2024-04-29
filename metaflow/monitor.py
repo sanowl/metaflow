@@ -60,34 +60,6 @@ class NullMonitor(object):
             msg = Message(MessageTypes.BEST_EFFORT, payload)
             self._sidecar.send(msg)
 
-    def get_count_payload(self, name):
-        if self._sidecar.is_active:
-            counter = Counter(name)
-            counter.increment()
-            payload = {"counter": counter.serialize()}
-            msg = Message(MessageTypes.BEST_EFFORT, payload)
-            return msg
-
-    def get_measure_metrics(self, name):
-        if self._sidecar.is_active:
-            timer = Timer(name + "_timer")
-            counter = Counter(name + "_counter")
-            timer.start()
-            counter.increment()
-            return timer, counter
-
-    def get_gauge_payload(self, name, gauge_value):
-        if self._sidecar.is_active:
-            gauge = Gauge(name)
-            gauge.set_value(gauge_value)
-            payload = {"gauge": gauge.serialize()}
-            msg = Message(MessageTypes.BEST_EFFORT, payload)
-            return msg
-
-    def send_metric(self, msg):
-        if self._sidecar.is_active and msg is not None:
-            self._sidecar.send(msg)
-
     @classmethod
     def get_worker(cls):
         return None
