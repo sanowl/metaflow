@@ -1,5 +1,5 @@
 import sys
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Union
 
 
 class SystemLogger(object):
@@ -14,7 +14,7 @@ class SystemLogger(object):
             self.logger.terminate()
 
     @property
-    def environment(self):
+    def environment(self) -> Optional["metaflow_environment.MetaflowEnvironment"]:
         from .plugins import ENVIRONMENTS
         from .metaflow_config import DEFAULT_ENVIRONMENT
         from .metaflow_environment import MetaflowEnvironment
@@ -27,33 +27,23 @@ class SystemLogger(object):
             ][0](self.flow)
         return self._environment
 
-    @environment.setter
-    def environment(self, environment):
-        self._environment = environment
-
     @property
-    def flow(self):
+    def flow(
+        self,
+    ) -> Optional[Union["metaflow.flowspec.FlowSpec", "metaflow.sidecar.DummyFlow"]]:
         from metaflow.sidecar import DummyFlow
 
         if self._flow is None:
             self._flow = DummyFlow()
-            self.flow_name = "not_a_real_flow"
+            self._flow_name = self._flow.name
         return self._flow
 
-    @flow.setter
-    def flow(self, flow):
-        self._flow = flow
-
     @property
-    def flow_name(self):
+    def flow_name(self) -> Optional[str]:
         return self._flow_name
 
-    @flow_name.setter
-    def flow_name(self, flow_name):
-        self._flow_name = flow_name
-
     @property
-    def logger(self):
+    def logger(self) -> Optional["metaflow.event_logger.NullEventLogger"]:
         from .plugins import LOGGING_SIDECARS
         from .metaflow_config import DEFAULT_EVENT_LOGGER
 
@@ -65,17 +55,19 @@ class SystemLogger(object):
             self._logger.start()
         return self._logger
 
-    @logger.setter
-    def logger(self, logger):
+    def set_logger(
+        self,
+        flow: "metaflow.flowspec.FlowSpec",
+        environment: "metaflow_environment.MetaflowEnvironment",
+        logger: "metaflow.event_logger.NullEventLogger",
+    ):
+        self._flow = flow
+        self._flow_name = flow.name
+        self._environment = environment
         self._logger = logger
 
-    def set_logger(self, flow, environment, logger):
-        self.flow = flow
-        self.environment = environment
-        self.logger = logger
-
     @staticmethod
-    def _debug(msg: str) -> None:
+    def _debug(msg: str):
         """
         Log a debug message to stderr.
 
@@ -90,7 +82,7 @@ class SystemLogger(object):
         """
         print("system logger: %s" % msg, file=sys.stderr)
 
-    def log(self, payload: Dict[str, Any]) -> None:
+    def log(self, payload: Dict[str, Any]):
         """
         Log a message to the logger.
 

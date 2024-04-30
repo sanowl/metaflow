@@ -1,5 +1,6 @@
 import sys
 from contextlib import contextmanager
+from typing import Optional, Union
 
 
 class SystemMonitor(object):
@@ -14,7 +15,7 @@ class SystemMonitor(object):
             self.monitor.terminate()
 
     @property
-    def environment(self):
+    def environment(self) -> Optional["metaflow_environment.MetaflowEnvironment"]:
         from .plugins import ENVIRONMENTS
         from .metaflow_config import DEFAULT_ENVIRONMENT
         from .metaflow_environment import MetaflowEnvironment
@@ -27,33 +28,23 @@ class SystemMonitor(object):
             ][0](self.flow)
         return self._environment
 
-    @environment.setter
-    def environment(self, environment):
-        self._environment = environment
-
     @property
-    def flow(self):
+    def flow(
+        self,
+    ) -> Optional[Union["metaflow.flowspec.FlowSpec", "metaflow.sidecar.DummyFlow"]]:
         from metaflow.sidecar import DummyFlow
 
         if self._flow is None:
             self._flow = DummyFlow()
-            self.flow_name = "not_a_real_flow"
+            self._flow_name = self._flow.name
         return self._flow
 
-    @flow.setter
-    def flow(self, flow):
-        self._flow = flow
-
     @property
-    def flow_name(self):
+    def flow_name(self) -> Optional[str]:
         return self._flow_name
 
-    @flow_name.setter
-    def flow_name(self, flow_name):
-        self._flow_name = flow_name
-
     @property
-    def monitor(self):
+    def monitor(self) -> Optional["metaflow.monitor.NullMonitor"]:
         from .plugins import MONITOR_SIDECARS
         from .metaflow_config import DEFAULT_MONITOR
 
@@ -65,17 +56,19 @@ class SystemMonitor(object):
             self._monitor.start()
         return self._monitor
 
-    @monitor.setter
-    def monitor(self, monitor):
+    def set_monitor(
+        self,
+        flow: "metaflow.flowspec.FlowSpec",
+        environment: "metaflow_environment.MetaflowEnvironment",
+        monitor: "metaflow.monitor.NullMonitor",
+    ) -> None:
+        self._flow = flow
+        self._flow_name = flow.name
+        self._environment = environment
         self._monitor = monitor
 
-    def set_monitor(self, flow, environment, monitor):
-        self.flow = flow
-        self.environment = environment
-        self.monitor = monitor
-
     @staticmethod
-    def _debug(msg: str) -> None:
+    def _debug(msg: str):
         """
         Log a debug message to stderr.
 
@@ -91,7 +84,7 @@ class SystemMonitor(object):
         print("system monitor: %s" % msg, file=sys.stderr)
 
     @contextmanager
-    def measure(self, name):
+    def measure(self, name: str):
         """
         Context manager to measure the execution duration and counter of a block of code.
 
@@ -109,7 +102,7 @@ class SystemMonitor(object):
             yield
 
     @contextmanager
-    def count(self, name):
+    def count(self, name: str):
         """
         Context manager to increment a counter.
 
@@ -126,7 +119,7 @@ class SystemMonitor(object):
         with self.monitor.count(name):
             yield
 
-    def gauge(self, name, value):
+    def gauge(self, gauge: "metaflow.monitor.Gauge"):
         """
         Log a gauge.
 
@@ -138,10 +131,6 @@ class SystemMonitor(object):
             The value of the gauge.
 
         """
-        from .monitor import Gauge
-
-        gauge = Gauge(name)
-        gauge.set_value(value)
         self.monitor.gauge(gauge)
 
 

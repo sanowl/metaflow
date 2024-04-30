@@ -911,11 +911,13 @@ def start(
         flow=ctx.obj.flow, env=ctx.obj.environment
     )
     ctx.obj.event_logger.start()
+    _system_logger.set_logger(ctx.obj.flow, ctx.obj.environment, ctx.obj.event_logger)
 
     ctx.obj.monitor = MONITOR_SIDECARS[monitor](
         flow=ctx.obj.flow, env=ctx.obj.environment
     )
     ctx.obj.monitor.start()
+    _system_monitor.set_monitor(ctx.obj.flow, ctx.obj.environment, ctx.obj.monitor)
 
     ctx.obj.metadata = [m for m in METADATA_PROVIDERS if m.TYPE == metadata][0](
         ctx.obj.environment, ctx.obj.flow, ctx.obj.event_logger, ctx.obj.monitor
@@ -959,10 +961,6 @@ def start(
 
     if decospecs:
         decorators._attach_decorators(ctx.obj.flow, decospecs)
-
-    # We create an instance of SystemMonitor and SystemLogger respectively
-    _system_monitor.set_monitor(ctx.obj.flow, ctx.obj.environment, ctx.obj.monitor)
-    _system_logger.set_logger(ctx.obj.flow, ctx.obj.environment, ctx.obj.event_logger)
 
     # initialize current and parameter context for deploy-time parameters
     current._set_env(flow=ctx.obj.flow, is_running=False)
