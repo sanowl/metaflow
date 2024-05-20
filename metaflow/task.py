@@ -563,7 +563,7 @@ class MetaflowTask(object):
                     current._update_env(
                         {
                             "parameter_names": self._init_parameters(
-                                inputs[0], passdown=False
+                                inputs[0], passdown=True
                             )
                         }
                     )
