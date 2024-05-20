@@ -14,8 +14,7 @@ from . import decorators
 from . import metaflow_version
 from . import namespace
 from .metaflow_current import current
-from .metaflow_system_monitor import _system_monitor
-from .metaflow_system_logger import _system_logger
+from metaflow.system import _system_monitor, _system_logger
 from .cli_args import cli_args
 from .tagging_util import validate_tags
 from .util import (
@@ -911,13 +910,13 @@ def start(
         flow=ctx.obj.flow, env=ctx.obj.environment
     )
     ctx.obj.event_logger.start()
-    _system_logger.set_logger(ctx.obj.flow, ctx.obj.environment, ctx.obj.event_logger)
+    _system_logger.init_system_logger(ctx.obj.flow.name, ctx.obj.event_logger)
 
     ctx.obj.monitor = MONITOR_SIDECARS[monitor](
         flow=ctx.obj.flow, env=ctx.obj.environment
     )
     ctx.obj.monitor.start()
-    _system_monitor.set_monitor(ctx.obj.flow, ctx.obj.environment, ctx.obj.monitor)
+    _system_monitor.init_system_monitor(ctx.obj.flow.name, ctx.obj.monitor)
 
     ctx.obj.metadata = [m for m in METADATA_PROVIDERS if m.TYPE == metadata][0](
         ctx.obj.environment, ctx.obj.flow, ctx.obj.event_logger, ctx.obj.monitor

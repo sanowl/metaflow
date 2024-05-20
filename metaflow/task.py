@@ -24,8 +24,7 @@ from .unbounded_foreach import UBF_CONTROL
 from .util import all_equal, get_username, resolve_identity, unicode_type
 from .clone_util import clone_task_helper
 from .metaflow_current import current
-from .metaflow_system_monitor import _system_monitor
-from .metaflow_system_logger import _system_logger
+from metaflow.system import _system_logger, _system_monitor
 from metaflow.tracing import get_trace_id
 from metaflow.tuple_util import ForeachFrame
 
@@ -295,16 +294,10 @@ class MetaflowTask(object):
             task_id,
         )
         with _system_monitor.count("metaflow.task.clone"):
-            self.event_logger.log(
-                {
-                    "event_name": "metaflow.task.clone",
-                    "event_value": 1,
-                    "log_type": "INFO",
-                    "log_value": msg,
-                    "stream_type": "LOGS",
-                }
+            self.event_logger.log_event(
+                event_name="metaflow.task.clone",
+                msg=msg,
             )
-            pass
         # If we actually have to do the clone ourselves, proceed...
         clone_task_helper(
             self.flow.name,
@@ -535,13 +528,9 @@ class MetaflowTask(object):
         with self.monitor.measure("metaflow.task.duration"):
             try:
                 with self.monitor.count("metaflow.task.start"):
-                    self.event_logger.log(
-                        {
-                            "event_name": "metaflow.task.start",
-                            "event_value": 1,
-                        }
+                    self.event_logger.log_event(
+                        event_name="metaflow.task.start",
                     )
-                    pass
 
                 self.flow._current_step = step_name
                 self.flow._success = False
@@ -574,7 +563,7 @@ class MetaflowTask(object):
                     current._update_env(
                         {
                             "parameter_names": self._init_parameters(
-                                inputs[0], passdown=True
+                                inputs[0], passdown=False
                             )
                         }
                     )
@@ -653,16 +642,10 @@ class MetaflowTask(object):
             except Exception as ex:
                 with self.monitor.count("metaflow.task.exception"):
                     # Log both the metric and the exception message
-                    self.event_logger.log(
-                        {
-                            "event_name": "metaflow.task.exception",
-                            "event_value": 1,
-                            "log_type": "ERROR",
-                            "log_value": str(ex),
-                            "traceback": traceback.format_exc(),
-                        }
+                    self.event_logger.log_event(
+                        event_name="metaflow.task.exception",
+                        msg=traceback.format_exc(),
                     )
-                    pass
 
                 exception_handled = False
                 for deco in decorators:
@@ -690,13 +673,9 @@ class MetaflowTask(object):
 
                 # Emit metrics to logger/monitor sidecar implementations
                 with self.monitor.count("metaflow.task.end"):
-                    self.event_logger.log(
-                        {
-                            "event_name": "metaflow.task.end",
-                            "event_value": 1,
-                        }
+                    self.event_logger.log_event(
+                        event_name="metaflow.task.end",
                     )
-                    pass
 
                 attempt_ok = str(bool(self.flow._task_ok))
                 self.metadata.register_metadata(
@@ -738,9 +717,7 @@ class MetaflowTask(object):
                 # Task duration consists of the time taken to run the task as well as the time taken to
                 # persist the task metadata and data to the datastore.
                 duration = time.time() - start
-                self.event_logger.log(
-                    {
-                        "event_name": "metaflow.task.duration",
-                        "event_value": duration,
-                    }
+                self.event_logger.log_event(
+                    event_name="metaflow.task.duration",
+                    msg="{}".format(duration),
                 )

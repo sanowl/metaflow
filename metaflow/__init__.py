@@ -100,12 +100,6 @@ from .metaflow_profile import profile
 # current runtime singleton
 from .metaflow_current import current
 
-# system monitor runtime singleton (meant for internal use)
-from .metaflow_system_monitor import _system_monitor
-
-# system logger runtime singleton (meant for internal use)
-from .metaflow_system_logger import _system_logger
-
 # Flow spec
 from .flowspec import FlowSpec
 

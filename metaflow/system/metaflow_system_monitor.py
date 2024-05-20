@@ -5,67 +5,51 @@ from typing import Optional, Union
 
 class SystemMonitor(object):
     def __init__(self):
-        self._flow = None
-        self._environment = None
         self._monitor = None
         self._flow_name = None
 
     def __del__(self):
-        if self.flow_name == "not_a_real_flow":
+        if self._flow_name == "not_a_real_flow":
             self.monitor.terminate()
 
-    @property
-    def environment(self) -> Optional["metaflow_environment.MetaflowEnvironment"]:
-        from .plugins import ENVIRONMENTS
-        from .metaflow_config import DEFAULT_ENVIRONMENT
-        from .metaflow_environment import MetaflowEnvironment
+    def init_environment_outside_flow(
+        self, flow: Union["metaflow.flowspec.FlowSpec", "metaflow.sidecar.DummyFlow"]
+    ):
+        from metaflow.plugins import ENVIRONMENTS
+        from metaflow.metaflow_config import DEFAULT_ENVIRONMENT
+        from metaflow.metaflow_environment import MetaflowEnvironment
 
-        if self._environment is None:
-            self._environment = [
-                e
-                for e in ENVIRONMENTS + [MetaflowEnvironment]
-                if e.TYPE == DEFAULT_ENVIRONMENT
-            ][0](self.flow)
-        return self._environment
+        return [
+            e
+            for e in ENVIRONMENTS + [MetaflowEnvironment]
+            if e.TYPE == DEFAULT_ENVIRONMENT
+        ][0](flow)
 
-    @property
-    def flow(
-        self,
-    ) -> Optional[Union["metaflow.flowspec.FlowSpec", "metaflow.sidecar.DummyFlow"]]:
-        from metaflow.sidecar import DummyFlow
+    def init_system_monitor(
+        self, flow_name: str, monitor: "metaflow.monitor.NullMonitor"
+    ):
+        self._flow_name = flow_name
+        self._monitor = monitor
 
-        if self._flow is None:
-            self._flow = DummyFlow()
-            self._flow_name = self._flow.name
-        return self._flow
+    def init_system_monitor_outside_flow(self):
+        from .dummy_flow import DummyFlow
+        from metaflow.plugins import MONITOR_SIDECARS
+        from metaflow.metaflow_config import DEFAULT_MONITOR
 
-    @property
-    def flow_name(self) -> Optional[str]:
-        return self._flow_name
+        self._flow_name = "not_a_real_flow"
+        _flow = DummyFlow(self._flow_name)
+        _environment = self.init_environment_outside_flow(_flow)
+        _monitor = MONITOR_SIDECARS[DEFAULT_MONITOR](_flow, _environment)
+        return _monitor
 
     @property
     def monitor(self) -> Optional["metaflow.monitor.NullMonitor"]:
-        from .plugins import MONITOR_SIDECARS
-        from .metaflow_config import DEFAULT_MONITOR
-
         if self._monitor is None:
-            self._monitor = MONITOR_SIDECARS[DEFAULT_MONITOR](
-                flow=self.flow, env=self.environment
-            )
+            # This happens if the monitor is being accessed outside of a flow
             self._debug("Started monitor outside of a flow")
+            self._monitor = self.init_system_monitor_outside_flow()
             self._monitor.start()
         return self._monitor
-
-    def set_monitor(
-        self,
-        flow: "metaflow.flowspec.FlowSpec",
-        environment: "metaflow_environment.MetaflowEnvironment",
-        monitor: "metaflow.monitor.NullMonitor",
-    ) -> None:
-        self._flow = flow
-        self._flow_name = flow.name
-        self._environment = environment
-        self._monitor = monitor
 
     @staticmethod
     def _debug(msg: str):
