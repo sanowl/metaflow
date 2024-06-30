@@ -1,5 +1,4 @@
 import os
-import random
 
 import requests
 import time
@@ -19,6 +18,7 @@ from metaflow.metadata.heartbeat import HB_URL_KEY
 from metaflow.sidecar import Message, MessageTypes, Sidecar
 
 from metaflow.util import version_parse
+import secrets
 
 
 # Define message enums
@@ -229,7 +229,7 @@ class ServiceMetadataProvider(MetadataProvider):
                     )
                 # No 409's seen... raise a more generic error
                 raise MetaflowTaggingError("Tagging failed after %d tries" % tries)
-            time.sleep(0.3 * random.uniform(1.4, 1.6) ** tries)
+            time.sleep(0.3 * secrets.SystemRandom().uniform(1.4, 1.6) ** tries)
             tries += 1
 
     @classmethod

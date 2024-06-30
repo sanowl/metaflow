@@ -1,11 +1,11 @@
 import json
 import os
-import random
 import string
 import zlib
 from itertools import dropwhile, islice
 
 from metaflow.util import to_bytes
+import secrets
 
 
 def _token_generator(token_prefix):
@@ -13,8 +13,8 @@ def _token_generator(token_prefix):
         prefix = "%s-%d-" % (token_prefix, i)
         # we need to use a consistent hash here, which is why
         # random.seed(prefix) or random.seed(hash(prefix)) won't work
-        random.seed(zlib.adler32(to_bytes(prefix)))
-        yield prefix + "".join(random.sample(string.ascii_lowercase, 4))
+        secrets.SystemRandom().seed(zlib.adler32(to_bytes(prefix)))
+        yield prefix + "".join(secrets.SystemRandom().sample(string.ascii_lowercase, 4))
 
 
 def _makedirs(path):

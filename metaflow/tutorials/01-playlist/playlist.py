@@ -1,4 +1,5 @@
 from metaflow import FlowSpec, step, IncludeFile, Parameter
+import secrets
 
 
 def script_path(filename):
@@ -79,7 +80,6 @@ class PlayListFlow(FlowSpec):
         This step chooses a random movie from a different genre.
 
         """
-        from random import choice
 
         # Find all the movies that are not in the provided genre.
         movies = [
@@ -91,7 +91,7 @@ class PlayListFlow(FlowSpec):
         ]
 
         # Choose one randomly.
-        self.bonus = choice(movies)
+        self.bonus = secrets.choice(movies)
 
         self.next(self.join)
 
@@ -101,7 +101,6 @@ class PlayListFlow(FlowSpec):
         Filter the movies by genre.
 
         """
-        from random import shuffle
 
         # Find all the movies titles in the specified genre.
         self.movies = [
@@ -113,7 +112,7 @@ class PlayListFlow(FlowSpec):
         ]
 
         # Randomize the title names.
-        shuffle(self.movies)
+        secrets.SystemRandom().shuffle(self.movies)
 
         self.next(self.join)
 

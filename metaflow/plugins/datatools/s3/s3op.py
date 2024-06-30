@@ -3,7 +3,6 @@ from __future__ import print_function
 import json
 import time
 import math
-import random
 import re
 import sys
 import os
@@ -16,6 +15,7 @@ from multiprocessing import Process, Queue
 from itertools import starmap, chain, islice
 
 from boto3.s3.transfer import TransferConfig
+import secrets
 
 try:
     # python2
@@ -344,14 +344,14 @@ def start_workers(mode, urls, num_workers, inject_failure, s3config):
     num_workers = min(num_workers, len(urls))
     queue = Queue(len(urls) + num_workers)
     procs = {}
-    random.seed()
+    secrets.SystemRandom().seed()
 
     sz_results = []
     # 1. push sources and destinations to the queue
     # We only push if we don't inject a failure; otherwise, we already set the sz_results
     # appropriately with the result of the injected failure.
     for idx, elt in enumerate(urls):
-        if random.randint(0, 99) < inject_failure:
+        if secrets.SystemRandom().randint(0, 99) < inject_failure:
             sz_results.append(-ERROR_TRANSIENT)
         else:
             sz_results.append(None)

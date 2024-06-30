@@ -1,6 +1,7 @@
 import json
 from .card import MetaflowCard, MetaflowCardComponent
 from .renderer_tools import render_safely
+import secrets
 
 
 class TestStringComponent(MetaflowCardComponent):
@@ -20,13 +21,12 @@ class TestPathSpecCard(MetaflowCard):
     type = "test_pathspec_card"
 
     def render(self, task):
-        import random
         import string
 
         return "%s %s" % (
             task.pathspec,
             "".join(
-                random.choice(string.ascii_uppercase + string.digits) for _ in range(6)
+                secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6)
             ),
         )
 

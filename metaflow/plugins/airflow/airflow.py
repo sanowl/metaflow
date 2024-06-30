@@ -1,6 +1,5 @@
 import json
 import os
-import random
 import string
 import sys
 from datetime import datetime, timedelta
@@ -53,6 +52,7 @@ from . import airflow_utils
 from .airflow_utils import AIRFLOW_MACROS, TASK_ID_XCOM_KEY, AirflowTask, Workflow
 from .exception import AirflowException
 from .sensors import SUPPORTED_SENSORS
+import secrets
 
 AIRFLOW_DEPLOY_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "dag.py")
 
@@ -563,7 +563,7 @@ class Airflow(object):
             )
             # Export user-defined parameters into runtime environment
             param_file = "".join(
-                random.choice(string.ascii_lowercase) for _ in range(10)
+                secrets.choice(string.ascii_lowercase) for _ in range(10)
             )
             # Setup Parameters as environment variables which are stored in a dictionary.
             export_params = (
