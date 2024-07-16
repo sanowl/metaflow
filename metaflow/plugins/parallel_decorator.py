@@ -3,6 +3,7 @@ from metaflow.unbounded_foreach import UBF_CONTROL
 from metaflow.exception import MetaflowException
 import os
 import sys
+from security import safe_command
 
 
 class ParallelDecorator(StepDecorator):
@@ -109,7 +110,7 @@ def _local_multinode_control_task_step_func(flow, env_to_use, step_func, retry_c
         kwargs["retry_count"] = str(retry_count)
 
         cmd = cli_args.step_command(executable, script, step_name, step_kwargs=kwargs)
-        p = subprocess.Popen(cmd)
+        p = safe_command.run(subprocess.Popen, cmd)
         subprocesses.append(p)
 
     flow._control_mapper_tasks = [

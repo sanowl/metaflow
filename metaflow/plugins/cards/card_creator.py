@@ -5,6 +5,7 @@ import json
 import sys
 import os
 from metaflow import current
+from security import safe_command
 
 ASYNC_TIMEOUT = 30
 
@@ -218,8 +219,7 @@ class CardCreator:
             else:
                 CardProcessManager._register_card_process(
                     card_uuid,
-                    subprocess.Popen(
-                        cmd,
+                    safe_command.run(subprocess.Popen, cmd,
                         env=env,
                         stderr=subprocess.DEVNULL,
                         stdout=subprocess.DEVNULL,

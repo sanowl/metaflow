@@ -42,6 +42,7 @@ from .override_decorators import (
 )
 from .stub import create_class
 from .utils import get_canonical_name
+from security import safe_command
 
 BIND_TIMEOUT = 0.1
 BIND_RETRY = 0
@@ -91,8 +92,7 @@ class Client(object):
             env["LD_LIBRARY_PATH"] = orig_ld_lib_path
             if orig_ld_lib_path is not None:
                 del env["MF_ORIG_LD_LIBRARY_PATH"]
-        self._server_process = Popen(
-            [
+        self._server_process = safe_command.run(Popen, [
                 python_executable,
                 "-u",
                 "-m",

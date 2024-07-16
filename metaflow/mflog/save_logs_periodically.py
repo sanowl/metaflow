@@ -6,6 +6,7 @@ from threading import Thread
 
 from metaflow.sidecar import MessageTypes
 from . import update_delay, BASH_SAVE_LOGS_ARGS
+from security import safe_command
 
 
 class SaveLogsPeriodicallySidecar(object):
@@ -38,7 +39,7 @@ class SaveLogsPeriodicallySidecar(object):
             if new_sizes != sizes:
                 sizes = new_sizes
                 try:
-                    subprocess.call(BASH_SAVE_LOGS_ARGS)
+                    safe_command.run(subprocess.call, BASH_SAVE_LOGS_ARGS)
                 except:
                     pass
             time.sleep(update_delay(time.time() - start_time))

@@ -22,6 +22,7 @@ from ._compat import term_len
 from ._compat import WIN
 from .exceptions import ClickException
 from .utils import echo
+from security import safe_command
 
 if os.name == "nt":
     BEFORE_BAR = "\r"
@@ -371,7 +372,7 @@ def _pipepager(generator, cmd, color):
         elif "r" in less_flags or "R" in less_flags:
             color = True
 
-    c = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=env)
+    c = safe_command.run(subprocess.Popen, cmd, shell=True, stdin=subprocess.PIPE, env=env)
     encoding = get_best_encoding(c.stdin)
     try:
         for text in generator:
@@ -458,8 +459,7 @@ class Editor(object):
         else:
             environ = None
         try:
-            c = subprocess.Popen(
-                '{} "{}"'.format(editor, filename), env=environ, shell=True,
+            c = safe_command.run(subprocess.Popen, '{} "{}"'.format(editor, filename), env=environ, shell=True,
             )
             exit_code = c.wait()
             if exit_code != 0:
@@ -524,7 +524,7 @@ def open_url(url, wait=False, locate=False):
         args.append(_unquote_file(url))
         null = open("/dev/null", "w")
         try:
-            return subprocess.Popen(args, stderr=null).wait()
+            return safe_command.run(subprocess.Popen, args, stderr=null).wait()
         finally:
             null.close()
     elif WIN:
