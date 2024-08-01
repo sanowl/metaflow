@@ -19,6 +19,7 @@ from metaflow.metadata.heartbeat import HB_URL_KEY
 from metaflow.sidecar import Message, MessageTypes, Sidecar
 
 from metaflow.util import version_parse
+from security import safe_requests
 
 
 # Define message enums
@@ -59,7 +60,7 @@ class ServiceMetadataProvider(MetadataProvider):
     def compute_info(cls, val):
         v = val.rstrip("/")
         try:
-            resp = requests.get(os.path.join(v, "ping"), headers=SERVICE_HEADERS.copy())
+            resp = safe_requests.get(os.path.join(v, "ping"), headers=SERVICE_HEADERS.copy())
             resp.raise_for_status()
         except:  # noqa E722
             raise ValueError("Metaflow service [%s] unreachable." % v)
@@ -412,9 +413,9 @@ class ServiceMetadataProvider(MetadataProvider):
                 if method == "GET":
                     if monitor:
                         with monitor.measure("metaflow.service_metadata.get"):
-                            resp = requests.get(url, headers=SERVICE_HEADERS.copy())
+                            resp = safe_requests.get(url, headers=SERVICE_HEADERS.copy())
                     else:
-                        resp = requests.get(url, headers=SERVICE_HEADERS.copy())
+                        resp = safe_requests.get(url, headers=SERVICE_HEADERS.copy())
                 elif method == "POST":
                     if monitor:
                         with monitor.measure("metaflow.service_metadata.post"):
@@ -499,9 +500,9 @@ class ServiceMetadataProvider(MetadataProvider):
             try:
                 if monitor:
                     with monitor.measure("metaflow.service_metadata.get"):
-                        resp = requests.get(url, headers=SERVICE_HEADERS.copy())
+                        resp = safe_requests.get(url, headers=SERVICE_HEADERS.copy())
                 else:
-                    resp = requests.get(url, headers=SERVICE_HEADERS.copy())
+                    resp = safe_requests.get(url, headers=SERVICE_HEADERS.copy())
             except:
                 if monitor:
                     with monitor.count("metaflow.service_metadata.failed_request"):

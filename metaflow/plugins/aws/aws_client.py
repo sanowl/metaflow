@@ -1,3 +1,5 @@
+from security import safe_requests
+
 cached_aws_sandbox_creds = None
 cached_provider_class = None
 
@@ -50,7 +52,7 @@ class Boto3ClientProvider(object):
                 url = "%s/auth/token" % AWS_SANDBOX_STS_ENDPOINT_URL
                 headers = {"x-api-key": AWS_SANDBOX_API_KEY}
                 try:
-                    r = requests.get(url, headers=headers)
+                    r = safe_requests.get(url, headers=headers)
                     r.raise_for_status()
                     cached_aws_sandbox_creds = r.json()
                 except requests.exceptions.HTTPError as e:

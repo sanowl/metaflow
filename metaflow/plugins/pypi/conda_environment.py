@@ -14,8 +14,6 @@ from io import BufferedIOBase, BytesIO
 from itertools import chain
 from urllib.parse import unquote, urlparse
 
-import requests
-
 from metaflow.exception import MetaflowException
 from metaflow.metaflow_config import get_pinned_conda_libs
 from metaflow.metaflow_environment import MetaflowEnvironment
@@ -23,6 +21,7 @@ from metaflow.metaflow_profile import profile
 
 from . import MAGIC_FILE, _datastore_packageroot
 from .utils import conda_platform
+from security import safe_requests
 
 
 class CondaEnvironmentException(MetaflowException):
@@ -451,7 +450,7 @@ class LazyOpen(BufferedIOBase):
 
     def _download_to_buffer(self):
         # TODO: Stream it in chunks?
-        response = requests.get(self.url, stream=True)
+        response = safe_requests.get(self.url, stream=True)
         response.raise_for_status()
         return response.content
 
