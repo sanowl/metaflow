@@ -386,9 +386,9 @@ class CommandManager(object):
 
                 try:
                     if timeout_per_line is None:
-                        line = f.readline()
+                        line = f.readline(5_000_000)
                     else:
-                        line = await asyncio.wait_for(f.readline(), timeout_per_line)
+                        line = await asyncio.wait_for(f.readline(5_000_000), timeout_per_line)
                 except asyncio.TimeoutError as e:
                     raise LogReadTimeoutError(
                         "Timeout while reading a line from the log file for the "
