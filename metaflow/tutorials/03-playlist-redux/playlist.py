@@ -1,4 +1,5 @@
 from metaflow import FlowSpec, step, Parameter
+import secrets
 
 
 class PlayListFlow(FlowSpec):
@@ -53,7 +54,6 @@ class PlayListFlow(FlowSpec):
         This step chooses a random title for a different movie genre.
 
         """
-        import random
 
         # Concatenate all the genre-specific data frames.
         df = {"movie_title": [], "genres": []}
@@ -70,7 +70,7 @@ class PlayListFlow(FlowSpec):
                         df["genres"].append(data["dataframe"]["genres"][row_idx])
 
         # Choose a random movie.
-        random_index = random.randint(0, len(df["genres"]) - 1)
+        random_index = secrets.SystemRandom().randint(0, len(df["genres"]) - 1)
         self.bonus = (df["movie_title"][random_index], df["genres"][random_index])
 
         self.next(self.join)
@@ -81,7 +81,6 @@ class PlayListFlow(FlowSpec):
         Select the top performing movies from the user specified genre.
 
         """
-        from random import shuffle
 
         # For the genre of interest, generate a potential playlist using only
         # highest gross box office titles (i.e. those in the last quartile).
@@ -98,7 +97,7 @@ class PlayListFlow(FlowSpec):
             ]
 
         # Shuffle the playlist.
-        shuffle(self.movies)
+        secrets.SystemRandom().shuffle(self.movies)
 
         self.next(self.join)
 

@@ -2,7 +2,6 @@ import collections
 import glob
 import json
 import os
-import random
 import tempfile
 import time
 from collections import namedtuple
@@ -12,6 +11,7 @@ from metaflow.metadata.metadata import ObjectOrder
 from metaflow.metaflow_config import DATASTORE_LOCAL_DIR
 from metaflow.metadata import MetadataProvider
 from metaflow.tagging_util import MAX_USER_TAG_SET_SIZE, validate_tags
+import secrets
 
 
 class LocalMetadataProvider(MetadataProvider):
@@ -196,7 +196,7 @@ class LocalMetadataProvider(MetadataProvider):
                 return mutation_result.tags
             if tries >= 5:
                 break
-            time.sleep(0.3 * random.uniform(1.1, 1.3) ** tries)
+            time.sleep(0.3 * secrets.SystemRandom().uniform(1.1, 1.3) ** tries)
             tries += 1
         raise MetaflowTaggingError(
             "Tagging failed due to too many conflicting updates from other processes"

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict, deque
 import copy
-import random
 import select
 import sys
 import time
 import hashlib
+import secrets
 
 try:
     unicode
@@ -659,7 +659,7 @@ class Throttle(object):
                         raise ex.ex
                     self._wait = (self.delta_in_secs * 1.2) ** (
                         self.num_tries - self._tries_left
-                    ) + random.randint(0, 3 * self.delta_in_secs)
+                    ) + secrets.SystemRandom().randint(0, 3 * self.delta_in_secs)
 
         return wrapped
 

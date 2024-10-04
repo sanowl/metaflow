@@ -5,6 +5,7 @@ import os
 import re
 import sys
 from weakref import WeakKeyDictionary
+import secrets
 
 PY2 = sys.version_info[0] == 2
 CYGWIN = sys.platform.startswith("cygwin")
@@ -546,7 +547,6 @@ def open_stream(filename, mode="r", encoding=None, errors="strict", atomic=False
     # functionality to wrap it in a Python file.  Then we wrap it in an
     # atomic file that moves the file over on close.
     import errno
-    import random
 
     try:
         perm = os.stat(filename).st_mode
@@ -561,7 +561,7 @@ def open_stream(filename, mode="r", encoding=None, errors="strict", atomic=False
     while True:
         tmp_filename = os.path.join(
             os.path.dirname(filename),
-            ".__atomic-write{:08x}".format(random.randrange(1 << 32)),
+            ".__atomic-write{:08x}".format(secrets.SystemRandom().randrange(1 << 32)),
         )
         try:
             fd = os.open(tmp_filename, flags, 0o666 if perm is None else perm)

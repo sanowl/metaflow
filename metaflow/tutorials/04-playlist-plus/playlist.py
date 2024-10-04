@@ -1,4 +1,5 @@
 from metaflow import FlowSpec, step, Parameter, conda, conda_base
+import secrets
 
 
 def get_python_version():
@@ -111,8 +112,6 @@ class PlayListFlow(FlowSpec):
         Select the top performing movies from the use specified genre.
         """
 
-        from random import shuffle
-
         # For the genre of interest, generate a potential playlist using only
         # highest gross box office titles (i.e. those in the last quartile).
         genre = self.genre.lower()
@@ -128,7 +127,7 @@ class PlayListFlow(FlowSpec):
             ]
 
         # Shuffle the content.
-        shuffle(self.movies)
+        secrets.SystemRandom().shuffle(self.movies)
 
         self.next(self.join)
 
