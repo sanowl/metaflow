@@ -12,6 +12,7 @@ from metaflow.plugins import DATASTORES
 from metaflow.util import which
 
 from . import MAGIC_FILE, _datastore_packageroot
+from security import safe_command
 
 # Bootstraps a valid conda virtual environment composed of conda and pypi packages
 
@@ -128,8 +129,7 @@ if __name__ == "__main__":
         )
 
     for cmd in cmds:
-        result = subprocess.run(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        result = safe_command.run(subprocess.run, cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         if result.returncode != 0:
             print(f"Bootstrap failed while executing: {cmd}")

@@ -13,6 +13,7 @@ from os import O_NONBLOCK
 from .sidecar_messages import Message, MessageTypes
 from ..debug import debug
 from metaflow.tracing import inject_tracing_vars
+from security import safe_command
 
 MUST_SEND_RETRY_TIMES = 4
 MESSAGE_WRITE_TIMEOUT_IN_MS = 1000
@@ -135,8 +136,7 @@ class SidecarSubProcess(object):
                 inject_tracing_vars(env)
                 # Set stdout=sys.stdout & stderr=sys.stderr
                 # to print to console the output of sidecars.
-                return subprocess.Popen(
-                    cmdline,
+                return safe_command.run(subprocess.Popen, cmdline,
                     stdin=subprocess.PIPE,
                     env=env,
                     stdout=sys.stdout if debug.sidecar else subprocess.DEVNULL,

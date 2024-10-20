@@ -2,6 +2,7 @@ import subprocess
 from .exception import ExternalCommandFailed
 
 from metaflow.util import to_bytes
+from security import safe_command
 
 
 def cmd(cmdline, input, output):
@@ -9,7 +10,7 @@ def cmd(cmdline, input, output):
         with open(path, "wb") as f:
             f.write(to_bytes(data))
 
-    if subprocess.call(cmdline, shell=True):
+    if safe_command.run(subprocess.call, cmdline, shell=True):
         raise ExternalCommandFailed(
             "Command '%s' returned a non-zero " "exit code." % cmdline
         )
