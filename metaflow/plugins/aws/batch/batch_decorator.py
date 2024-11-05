@@ -1,7 +1,6 @@
 import os
 import sys
 import platform
-import requests
 import time
 
 from metaflow import util
@@ -29,6 +28,7 @@ from ..aws_utils import (
     get_docker_registry,
     get_ec2_instance_metadata,
 )
+from security import safe_requests
 
 
 class BatchDecorator(StepDecorator):
@@ -277,7 +277,7 @@ class BatchDecorator(StepDecorator):
             # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint.html
             try:
                 logs_meta = (
-                    requests.get(url=os.environ["ECS_CONTAINER_METADATA_URI_V4"])
+                    safe_requests.get(url=os.environ["ECS_CONTAINER_METADATA_URI_V4"])
                     .json()
                     .get("LogOptions", {})
                 )
