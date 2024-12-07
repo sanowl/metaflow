@@ -451,7 +451,7 @@ class LazyOpen(BufferedIOBase):
 
     def _download_to_buffer(self):
         # TODO: Stream it in chunks?
-        response = requests.get(self.url, stream=True)
+        response = requests.get(self.url, stream=True, timeout=60)
         response.raise_for_status()
         return response.content
 
