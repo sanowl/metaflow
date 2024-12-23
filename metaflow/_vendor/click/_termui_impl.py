@@ -371,7 +371,7 @@ def _pipepager(generator, cmd, color):
         elif "r" in less_flags or "R" in less_flags:
             color = True
 
-    c = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=env)
+    c = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, env=env)
     encoding = get_best_encoding(c.stdin)
     try:
         for text in generator:
@@ -459,8 +459,7 @@ class Editor(object):
             environ = None
         try:
             c = subprocess.Popen(
-                '{} "{}"'.format(editor, filename), env=environ, shell=True,
-            )
+                '{} "{}"'.format(editor, filename), env=environ, shell=False)
             exit_code = c.wait()
             if exit_code != 0:
                 raise ClickException("{}: Editing failed!".format(editor))

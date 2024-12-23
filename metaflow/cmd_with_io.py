@@ -9,7 +9,7 @@ def cmd(cmdline, input, output):
         with open(path, "wb") as f:
             f.write(to_bytes(data))
 
-    if subprocess.call(cmdline, shell=True):
+    if subprocess.call(cmdline, shell=False):
         raise ExternalCommandFailed(
             "Command '%s' returned a non-zero " "exit code." % cmdline
         )
