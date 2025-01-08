@@ -4,7 +4,6 @@ import re
 import sys
 import time
 import shutil
-import random
 import subprocess
 from io import RawIOBase, BufferedIOBase
 from itertools import chain, starmap
@@ -32,6 +31,7 @@ from metaflow.tuple_util import namedtuple_with_defaults
 from metaflow.exception import MetaflowException
 from metaflow.debug import debug
 import metaflow.tracing as tracing
+import secrets
 
 try:
     # python2
@@ -1381,7 +1381,7 @@ class S3(object):
 
     # add some jitter to make sure retries are not synchronized
     def _jitter_sleep(self, trynum, multiplier=2):
-        interval = multiplier**trynum + random.randint(0, 10)
+        interval = multiplier**trynum + secrets.SystemRandom().randint(0, 10)
         time.sleep(interval)
 
     # NOTE: re: _read_many_files and _put_many_files

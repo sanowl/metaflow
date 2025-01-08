@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-import random
 import string
 import sys
 from collections import defaultdict
@@ -23,6 +22,7 @@ from metaflow.util import dict_to_cli_options, to_pascalcase
 from ..batch.batch import Batch
 from .event_bridge_client import EventBridgeClient
 from .step_functions_client import StepFunctionsClient
+import secrets
 
 
 class StepFunctionsException(MetaflowException):
@@ -903,7 +903,7 @@ class StepFunctions(object):
             task_id_params = "%s-params" % task_id
             # Export user-defined parameters into runtime environment
             param_file = "".join(
-                random.choice(string.ascii_lowercase) for _ in range(10)
+                secrets.choice(string.ascii_lowercase) for _ in range(10)
             )
             export_params = (
                 "python -m "
@@ -941,7 +941,7 @@ class StepFunctions(object):
 
         if node.type == "join" and self.graph[node.split_parents[-1]].type == "foreach":
             parent_tasks_file = "".join(
-                random.choice(string.ascii_lowercase) for _ in range(10)
+                secrets.choice(string.ascii_lowercase) for _ in range(10)
             )
             export_parent_tasks = (
                 "python -m "

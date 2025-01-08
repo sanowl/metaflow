@@ -1,6 +1,5 @@
 from __future__ import print_function
 from datetime import datetime
-import random
 import time
 import sys
 import os
@@ -12,6 +11,7 @@ from metaflow.metaflow_config import (
     S3_RETRY_COUNT,
     RETRY_WARNING_THRESHOLD,
 )
+import secrets
 
 
 TEST_S3_RETRY = "TEST_S3_RETRY" in os.environ
@@ -74,7 +74,7 @@ def aws_retry(f):
                 last_exc = ex
                 # exponential backoff for real failures
                 if not (TEST_S3_RETRY and i == 0):
-                    time.sleep(2**i + random.randint(0, 5))
+                    time.sleep(2**i + secrets.SystemRandom().randint(0, 5))
         raise last_exc
 
     return retry_wrapper
