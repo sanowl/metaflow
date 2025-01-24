@@ -22,6 +22,7 @@ from typing import (
 )
 
 from . import _manylinux, _musllinux
+from security import safe_command
 
 logger = logging.getLogger(__name__)
 
@@ -396,8 +397,7 @@ def mac_platforms(
         if version == (10, 16):
             # When built against an older macOS SDK, Python will report macOS 10.16
             # instead of the real version.
-            version_str = subprocess.run(
-                [
+            version_str = safe_command.run(subprocess.run, [
                     sys.executable,
                     "-sS",
                     "-c",

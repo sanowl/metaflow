@@ -11,6 +11,7 @@ import sys
 from typing import Iterator, NamedTuple, Optional
 
 from ._elffile import ELFFile
+from security import safe_command
 
 
 class _MuslVersion(NamedTuple):
@@ -47,7 +48,7 @@ def _get_musl_version(executable: str) -> Optional[_MuslVersion]:
         return None
     if ld is None or "musl" not in ld:
         return None
-    proc = subprocess.run([ld], stderr=subprocess.PIPE, universal_newlines=True)
+    proc = safe_command.run(subprocess.run, [ld], stderr=subprocess.PIPE, universal_newlines=True)
     return _parse_musl_version(proc.stderr)
 
 
