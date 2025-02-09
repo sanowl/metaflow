@@ -2,6 +2,7 @@ import re
 import requests
 
 from metaflow.exception import MetaflowException
+from security import safe_requests
 
 
 def get_ec2_instance_metadata():
@@ -39,7 +40,7 @@ def get_ec2_instance_metadata():
         # Add IMDSv2 token if available, else fall back to IMDSv1.
         if token:
             headers["X-aws-ec2-metadata-token"] = token
-        instance_meta = requests.get(
+        instance_meta = safe_requests.get(
             url="http://169.254.169.254/latest/dynamic/instance-identity/document",
             headers=headers,
             timeout=timeout,
